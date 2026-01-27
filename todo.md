@@ -34,3 +34,6 @@
 ## 部署
 - [x] 创建 Dockerfile 和 docker-compose.yml
 - [ ] 测试本地部署
+
+## 修复
+- [x] 修复 Tailwind CSS 配置问题：将 v4 降级到 v3 版本以解决兼容性问题
