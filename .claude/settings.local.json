@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "WebFetch(domain:docs.fish.audio)",
+      "Bash(dir:*)",
+      "Bash(npx create-next-app:*)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install next@14 react react-dom typescript @types/node @types/react @types/react-dom tailwindcss postcss autoprefixer prisma @prisma/client)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx --package tailwindcss tailwindcss:*)",
+      "Bash(npx --package prisma prisma init:*)",
+      "Bash(node_modules/.bin/tailwindcss:*)",
+      "Bash(node_modules/.bin/prisma:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss@latest:*)",
+      "Bash(npx prisma@latest init:*)",
+      "Bash(echo:*)",
+      "Bash(npm run prisma:generate:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)"
+    ]
+  }
+}
