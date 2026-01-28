@@ -6,8 +6,7 @@ export interface FishAudioConfig {
 export interface TTSRequest {
   text: string;
   format?: 'mp3' | 'wav';
-  referenceAudio?: string;
-  referenceText?: string;
+  referenceId?: string;
   model?: string;
 }
 
@@ -22,7 +21,19 @@ export interface VoiceCloneRequest {
 }
 
 export interface VoiceCloneResponse {
-  referenceId: string;
+  _id: string;
+  type: string;
+  title: string;
+  description?: string;
+  state: string;
+  tags?: string[];
+  created_at: string;
+  visibility: string;
+  author: {
+    _id: string;
+    nickname: string;
+    avatar: string;
+  };
 }
 
 export interface ApiError {

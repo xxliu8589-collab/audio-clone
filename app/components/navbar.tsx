@@ -28,11 +28,10 @@ const Navbar = () => {
   };
 
   const navItems = [
-    { href: '/', label: '首页' },
     { href: '/clone', label: '声音克隆' },
     { href: '/tts', label: '文本转语音' },
+    { href: '/templates', label: '模板管理' },
     { href: '/history', label: '历史记录' },
-    { href: '/settings', label: '设置' },
   ];
 
   return (

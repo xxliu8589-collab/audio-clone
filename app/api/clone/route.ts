@@ -14,13 +14,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 检查是否已存在同名模板
+    if (name) {
+      const existingTemplate = await DBOperations.getAudioTemplateByName(name);
+      if (existingTemplate) {
+        return NextResponse.json(
+          { error: '已存在同名的声音模板，请使用不同的名称' },
+          { status: 400 }
+        );
+      }
+    }
+
     const api = new FishAudioAPI();
     const response = await api.cloneVoice({ audio, text });
 
     const template = await DBOperations.createAudioTemplate({
-      name: name || '自定义声音',
-      referenceId: response.referenceId,
-      description: description,
+      name: name || response.title || '自定义声音',
+      referenceId: response._id,
+      description: description || response.description,
     });
 
     return NextResponse.json({
@@ -29,8 +40,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('声音克隆失败:', error);
+    // 确保返回有效的 JSON 响应
     return NextResponse.json(
-      { error: error.message || '声音克隆失败' },
+      {
+        error: error.message || '声音克隆失败',
+        details: process.env.NODE_ENV === 'development' ? error : undefined
+      },
       { status: error.code || 500 }
     );
   }

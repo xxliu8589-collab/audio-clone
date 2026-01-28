@@ -2,6 +2,12 @@ import { prisma } from './prisma-client';
 import { AudioTemplate, AudioHistory } from '../types/fish-audio';
 
 class DBOperations {
+  static async getAudioTemplateByName(name: string): Promise<AudioTemplate | null> {
+    return await prisma.audioTemplate.findFirst({
+      where: { name },
+    });
+  }
+
   static async createAudioTemplate(data: {
     name: string;
     referenceId: string;
