@@ -15,7 +15,27 @@
       "Bash(timeout:*)",
       "WebFetch(domain:docs.fish.audio)",
       "mcp__streamable-mcp-server__chrome_fill_or_select",
-      "mcp__streamable-mcp-server__chrome_upload_file"
+      "mcp__streamable-mcp-server__chrome_upload_file",
+      "mcp__streamable-mcp-server__get_windows_and_tabs",
+      "Bash(Get-ChildItem -Path 'D:\\\\ai' -Recurse)",
+      "Bash(Select-Object:*)",
+      "mcp__streamable-mcp-server__chrome_computer",
+      "mcp__streamable-mcp-server__chrome_screenshot",
+      "mcp__streamable-mcp-server__chrome_get_web_content",
+      "Bash(find:*)",
+      "Bash(claude:*)",
+      "Bash(xargs:*)",
+      "Bash(dir:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(grep:*)",
+      "Bash(# 再次搜索确认是否还有残留的 websearch 文件或目录 echo \"\"=== 搜索 npx 缓存中的 websearch ===\"\" find \"\"C:/Users/98458/AppData/Local/npm-cache/_npx/\"\" -name \"\"*websearch*\"\" -type d || echo \"\"npx 缓存中无 websearch 目录\"\" echo \"\"\"\" echo \"\"=== 搜索 node_modules 中的 websearch ===\"\" find \"\"C:/Users/98458/AppData/Local/npm-cache/_npx/\"\" -path \"\"*/node_modules/*websearch*\"\" -type d || echo \"\"node_modules 中无 websearch 目录\"\" echo \"\"\"\" echo \"\"=== 验证删除的目录 ===\"\" ls \"\"C:/Users/98458/AppData/Local/npm-cache/_npx/\"\")",
+      "Bash(# 检查全局 npm 缓存目录 echo \"\"=== 检查全局 npm 缓存 ===\"\" ls -la \"\"C:/Users/98458/AppData/Roaming/npm/\"\")",
+      "Bash(__NEW_LINE_5d768dd7c56f7c65__ echo \"\")",
+      "Bash(ls:*)",
+      "Bash(done)",
+      "Bash(del:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

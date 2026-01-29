@@ -56,9 +56,9 @@ const ClonePage = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.exists) {
-          setNameError('已存在同名的声音模板，请使用不同的名称');
+          setError('已存在同名的声音模板，请使用不同的名称');
         } else {
-          setNameError('');
+          setError('');
         }
       }
     } catch (error) {
@@ -87,7 +87,7 @@ const ClonePage = () => {
     }
 
     if (!name.trim()) {
-      setNameError('声音名称不能为空');
+      setError('声音名称不能为空');
       setLoading(false);
       return;
     }
@@ -229,23 +229,20 @@ const ClonePage = () => {
               onChange={(e) => {
                 setName(e.target.value);
                 if (!e.target.value.trim()) {
-                  setNameError('声音名称不能为空');
+                  setError('声音名称不能为空');
                 } else {
                   checkNameExists(e.target.value);
                 }
               }}
               onBlur={() => {
                 if (!name.trim()) {
-                  setNameError('声音名称不能为空');
+                  setError('声音名称不能为空');
                 }
               }}
               placeholder="请输入声音名称"
-              className={`input-field ${nameError ? 'border-red-500 focus:ring-red-500' : ''}`}
+              className="input-field"
               required
             />
-            {nameError && (
-              <p className="text-sm text-red-500 mt-1">{nameError}</p>
-            )}
           </div>
 
           <div>

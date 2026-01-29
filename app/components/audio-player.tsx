@@ -4,11 +4,10 @@ import { useState, useRef, useEffect } from 'react';
 
 interface AudioPlayerProps {
   audioUrl: string;
-  format: 'mp3' | 'wav';
   onDownload?: () => void;
 }
 
-const AudioPlayer = ({ audioUrl, format, onDownload }: AudioPlayerProps) => {
+const AudioPlayer = ({ audioUrl, onDownload }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -16,30 +15,43 @@ const AudioPlayer = ({ audioUrl, format, onDownload }: AudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.addEventListener('loadedmetadata', () => {
-        setDuration(audioRef.current?.duration || 0);
-      });
+    const audio = audioRef.current;
+    if (!audio) return;
 
-      audioRef.current.addEventListener('timeupdate', () => {
-        setCurrentTime(audioRef.current?.currentTime || 0);
-        setProgress(
-          ((audioRef.current?.currentTime || 0) / (audioRef.current?.duration || 1)) * 100
-        );
-      });
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration || 0);
+    };
 
-      audioRef.current.addEventListener('ended', () => {
-        setIsPlaying(false);
-      });
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime || 0);
+      setProgress(((audio.currentTime || 0) / (audio.duration || 1)) * 100);
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+    };
+
+    // 先移除旧的事件监听器（如果有）
+    audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.removeEventListener('timeupdate', handleTimeUpdate);
+    audio.removeEventListener('ended', handleEnded);
+
+    // 添加新的事件监听器
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+
+    // 如果音频已经加载完成，立即设置时长
+    if (audio.readyState >= 2) {
+      setDuration(audio.duration || 0);
     }
 
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleEnded);
     };
-  }, []);
+  }, [audioUrl]);
 
   const togglePlay = () => {
     if (audioRef.current) {

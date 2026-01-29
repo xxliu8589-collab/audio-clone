@@ -7,7 +7,6 @@ import { AudioTemplate } from '../../src/types/fish-audio';
 const TTSPage = () => {
   const [text, setText] = useState('');
   const [templateId, setTemplateId] = useState('');
-  const [format, setFormat] = useState<'mp3' | 'wav'>('mp3');
   const [templates, setTemplates] = useState<AudioTemplate[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -51,7 +50,7 @@ const TTSPage = () => {
         body: JSON.stringify({
           text,
           templateId: templateId || undefined,
-          format,
+          format: 'mp3',
         }),
       });
 
@@ -100,7 +99,7 @@ const TTSPage = () => {
         body: JSON.stringify({
           text,
           templateId: templateId || undefined,
-          format,
+          format: 'mp3',
         }),
       });
 
@@ -131,7 +130,7 @@ const TTSPage = () => {
       const url = URL.createObjectURL(audioBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `audio-${Date.now()}.${format}`;
+      a.download = `audio-${Date.now()}.mp3`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (error: any) {
@@ -180,20 +179,6 @@ const TTSPage = () => {
               </select>
             </div>
 
-            <div>
-              <label htmlFor="format" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                音频格式
-              </label>
-              <select
-                id="format"
-                value={format}
-                onChange={(e) => setFormat(e.target.value as 'mp3' | 'wav')}
-                className="input-field"
-              >
-                <option value="mp3">MP3</option>
-                <option value="wav">WAV</option>
-              </select>
-            </div>
 
             {error && (
               <div className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md text-red-700 dark:text-red-300">
@@ -218,13 +203,12 @@ const TTSPage = () => {
           {audioGenerated ? (
             <AudioPlayer
               audioUrl={audioUrl}
-              format={format}
               onDownload={handleDownload}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-48 text-gray-500 dark:text-gray-400">
-              <svg className="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 18V5l12-3v13M9 18c0 0 1.56 0 2.55-.582M9 18c0 0-.5.501-.5 1.517v.583m1.5-1.583c.871-.924 2.02-.045 2.255 1.583H9z" />
+              <svg className="w-16 h-16 mb-4 opacity-50" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
               </svg>
               <p>生成音频后将在此显示预览</p>
             </div>

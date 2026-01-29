@@ -7,7 +7,8 @@ import path from 'path';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { text, templateId, format = 'mp3' } = body;
+    const { text, templateId } = body;
+    const format = 'mp3';
 
     if (!text) {
       return NextResponse.json(
