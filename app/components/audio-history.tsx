@@ -142,10 +142,7 @@ const AudioHistory = ({ onRefresh }: AudioHistoryProps) => {
                   </button>
                 </div>
               </div>
-              <AudioPlayer
-                audioUrl={item.audioUrl}
-                format={item.audioUrl.includes('.mp3') ? 'mp3' : 'wav'}
-              />
+              <AudioPlayer audioUrl={item.audioUrl} />
             </div>
           ))}
         </div>
