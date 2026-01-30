@@ -112,9 +112,10 @@ const ClonePage = () => {
         });
 
         let data;
+        let responseText = '';
         try {
           // 读取响应体并缓存
-          const responseText = await response.text();
+          responseText = await response.text();
           data = JSON.parse(responseText);
         } catch (parseError) {
           console.error('响应解析失败:', parseError);
