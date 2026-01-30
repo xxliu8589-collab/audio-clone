@@ -55,7 +55,7 @@ export interface AudioHistory {
   id: string;
   text: string;
   audioUrl: string;
-  templateId?: string;
+  templateId: string | null;
   duration: number;
   createdAt: Date;
 }
