@@ -34,6 +34,8 @@ dist-ssr
 # Prisma
 prisma/*.db
 prisma/*.db-journal
+# Include Prisma Client binaries for Vercel
+!src/generated/prisma/libquery_engine-*.so.node
 
 # Audio files
 public/audio/*.mp3

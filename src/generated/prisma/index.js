@@ -154,6 +154,10 @@ const config = {
       {
         "fromEnvVar": null,
         "value": "rhel-openssl-3.0.x"
+      },
+      {
+        "fromEnvVar": null,
+        "value": "debian-openssl-3.0.x"
       }
     ],
     "previewFeatures": [],
@@ -180,8 +184,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider      = \"prisma-client-js\"\n  output        = \"../src/generated/prisma\"\n  binaryTargets = [\"native\", \"rhel-openssl-3.0.x\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel AudioTemplate {\n  id          String   @id @default(cuid())\n  name        String\n  referenceId String\n  description String?\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n}\n\nmodel AudioHistory {\n  id         String   @id @default(cuid())\n  text       String\n  audioUrl   String\n  templateId String?\n  duration   Float\n  createdAt  DateTime @default(now())\n}\n",
-  "inlineSchemaHash": "33241493b5dcd2d0cf76075fae7bb43953f337596675594b006fa11b2585da3b",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider      = \"prisma-client-js\"\n  output        = \"../src/generated/prisma\"\n  binaryTargets = [\"native\", \"rhel-openssl-3.0.x\", \"debian-openssl-3.0.x\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel AudioTemplate {\n  id          String   @id @default(cuid())\n  name        String\n  referenceId String\n  description String?\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n}\n\nmodel AudioHistory {\n  id         String   @id @default(cuid())\n  text       String\n  audioUrl   String\n  templateId String?\n  duration   Float\n  createdAt  DateTime @default(now())\n}\n",
+  "inlineSchemaHash": "4ce2a92b2961790d685866586cca7663b9b344d16f971ef9624099bca44f4095",
   "copyEngine": true
 }
 
@@ -226,6 +230,10 @@ path.join(process.cwd(), "src/generated/prisma/query_engine-windows.dll.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "libquery_engine-rhel-openssl-3.0.x.so.node");
 path.join(process.cwd(), "src/generated/prisma/libquery_engine-rhel-openssl-3.0.x.so.node")
+
+// file annotations for bundling tools to include these files
+path.join(__dirname, "libquery_engine-debian-openssl-3.0.x.so.node");
+path.join(process.cwd(), "src/generated/prisma/libquery_engine-debian-openssl-3.0.x.so.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "schema.prisma");
 path.join(process.cwd(), "src/generated/prisma/schema.prisma")
