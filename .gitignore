@@ -38,3 +38,10 @@ prisma/*.db-journal
 # Audio files
 public/audio/*.mp3
 public/audio/*.wav
+
+# Build cache
+.open-next/
+.wrangler/
+
+# Dev environment
+.dev.vars
