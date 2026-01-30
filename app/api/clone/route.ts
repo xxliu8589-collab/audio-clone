@@ -41,12 +41,13 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('声音克隆失败:', error);
     // 确保返回有效的 JSON 响应
+    const statusCode = typeof error.status === 'number' ? error.status : 500;
     return NextResponse.json(
       {
         error: error.message || '声音克隆失败',
-        details: process.env.NODE_ENV === 'development' ? error : undefined
+        details: process.env.NODE_ENV === 'development' ? String(error) : undefined
       },
-      { status: error.code || 500 }
+      { status: statusCode }
     );
   }
 }

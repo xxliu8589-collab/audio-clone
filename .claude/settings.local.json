@@ -46,7 +46,9 @@
       "Bash(npx prisma db push:*)",
       "Bash($env:DATABASE_URL = \"postgresql://\")",
       "Bash(npx prisma migrate dev:*)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(gh run:*)",
+      "Bash(npx vercel env ls:*)"
     ]
   }
 }
