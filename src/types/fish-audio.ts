@@ -46,7 +46,7 @@ export interface AudioTemplate {
   id: string;
   name: string;
   referenceId: string;
-  description?: string;
+  description: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
