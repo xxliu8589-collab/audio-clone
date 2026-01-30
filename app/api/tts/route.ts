@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { FishAudioAPI } from '../../../src/utils/fish-audio-api';
 import { DBOperations } from '../../../src/utils/db-operations';
-import fs from 'fs';
-import path from 'path';
+import { uploadAudio } from '../../../src/utils/blob-storage';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,32 +40,30 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 创建音频文件存储目录（如果不存在）
-    const audioDir = path.join(process.cwd(), 'public', 'audio');
-    if (!fs.existsSync(audioDir)) {
-      fs.mkdirSync(audioDir, { recursive: true });
-    }
-
-    // 生成音频文件名和路径
-    const filename = `${Date.now()}.${format}`;
-    const audioPath = path.join(audioDir, filename);
-    const audioUrl = `/audio/${filename}`;
-
-    // 保存音频文件
-    fs.writeFileSync(audioPath, Buffer.from(response.audioData));
+    // 上传到 Vercel Blob 存储
+    const filename = `audio-${Date.now()}.${format}`;
+    const blobResult = await uploadAudio(
+      Buffer.from(response.audioData),
+      filename
+    );
 
     // 创建音频历史记录
     const history = await DBOperations.createAudioHistory({
       text,
-      audioUrl,
+      audioUrl: blobResult.url,
       templateId,
       duration: 0,
     });
 
-    return new NextResponse(response.audioData, {
-      headers: {
-        'Content-Type': `audio/${format}`,
-        'Content-Disposition': `attachment; filename="audio-${history.id}.${format}"`,
+    // 返回包含音频 URL 的 JSON 响应
+    return NextResponse.json({
+      success: true,
+      history: {
+        id: history.id,
+        text: history.text,
+        audioUrl: blobResult.url,
+        templateId: history.templateId,
+        createdAt: history.createdAt,
       },
     });
   } catch (error: any) {

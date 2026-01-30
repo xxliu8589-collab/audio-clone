@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AudioPlayer from '../components/audio-player';
-import { AudioTemplate } from '../../src/types/fish-audio';
+import type { AudioTemplate } from '../../src/types/fish-audio';
 
 const TTSPage = () => {
   const [text, setText] = useState('');
@@ -55,31 +55,16 @@ const TTSPage = () => {
       });
 
       if (!response.ok) {
-        // 读取响应内容并缓存
-        const responseText = await response.text();
-        console.error('错误响应:', responseText);
-        let errorData;
-        try {
-          errorData = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error('响应解析失败:', parseError);
-          throw new Error('服务器响应格式错误');
-        }
+        const errorData = await response.json();
         throw new Error(errorData.error || '文本转语音失败');
       }
 
-      // 检查响应是否是音频格式
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.startsWith('audio/')) {
-        console.error('响应不是音频格式:', contentType);
-        const responseText = await response.text();
-        console.error('原始响应:', responseText);
-        throw new Error('服务器返回了无效的音频数据');
+      const data = await response.json();
+      if (!data.success || !data.history?.audioUrl) {
+        throw new Error('服务器返回了无效的响应');
       }
 
-      const audioBlob = await response.blob();
-      const url = URL.createObjectURL(audioBlob);
-      setAudioUrl(url);
+      setAudioUrl(data.history.audioUrl);
       setAudioGenerated(true);
     } catch (error: any) {
       console.error('文本转语音失败:', error);
@@ -90,53 +75,12 @@ const TTSPage = () => {
   };
 
   const handleDownload = async () => {
-    try {
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text,
-          templateId: templateId || undefined,
-          format: 'mp3',
-        }),
-      });
-
-      if (!response.ok) {
-        // 读取响应内容并缓存
-        const responseText = await response.text();
-        console.error('错误响应:', responseText);
-        let errorData;
-        try {
-          errorData = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error('响应解析失败:', parseError);
-          throw new Error('服务器响应格式错误');
-        }
-        throw new Error(errorData.error || '下载失败');
-      }
-
-      // 检查响应是否是音频格式
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.startsWith('audio/')) {
-        console.error('响应不是音频格式:', contentType);
-        const responseText = await response.text();
-        console.error('原始响应:', responseText);
-        throw new Error('服务器返回了无效的音频数据');
-      }
-
-      const audioBlob = await response.blob();
-      const url = URL.createObjectURL(audioBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `audio-${Date.now()}.mp3`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (error: any) {
-      console.error('下载失败:', error);
-      setError(error.message || '下载失败');
-    }
+    if (!audioUrl) return;
+    const a = document.createElement('a');
+    a.href = audioUrl;
+    a.download = `audio-${Date.now()}.mp3`;
+    a.target = '_blank';
+    a.click();
   };
 
   return (
