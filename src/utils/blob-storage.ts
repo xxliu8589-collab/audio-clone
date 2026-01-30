@@ -21,7 +21,10 @@ export async function uploadAudio(
   const timestamp = Date.now();
   const pathname = filename || `audio-${timestamp}.mp3`;
 
-  const blob = await put(pathname, audioData, {
+  // 确保 audioData 是 Buffer 类型
+  const buffer = Buffer.isBuffer(audioData) ? audioData : Buffer.from(audioData);
+
+  const blob = await put(pathname, buffer, {
     access: 'public',
     contentType: 'audio/mpeg',
     token: BLOB_TOKEN,
