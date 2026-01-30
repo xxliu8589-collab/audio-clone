@@ -39,7 +39,14 @@
       "Bash(git remote remove:*)",
       "Bash(git remote add:*)",
       "Bash(git pull:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(git push:*)",
+      "mcp__streamable-mcp-server__chrome_switch_tab",
+      "mcp__streamable-mcp-server__chrome_keyboard",
+      "Bash(npx prisma db push:*)",
+      "Bash($env:DATABASE_URL = \"postgresql://\")",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npx prisma:*)"
     ]
   }
 }

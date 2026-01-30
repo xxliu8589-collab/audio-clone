@@ -40,7 +40,7 @@ export type AudioHistory = $Result.DefaultSelection<Prisma.$AudioHistoryPayload>
  */
 export class PrismaClient<
   ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-  const U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
+  U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
   ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
@@ -61,7 +61,7 @@ export class PrismaClient<
    */
 
   constructor(optionsArg ?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>);
-  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;
+  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
 
   /**
    * Connect with the database
@@ -72,6 +72,13 @@ export class PrismaClient<
    * Disconnect from the database
    */
   $disconnect(): $Utils.JsPromise<void>;
+
+  /**
+   * Add a middleware
+   * @deprecated since 4.16.0. For new code, prefer client extensions instead.
+   * @see https://pris.ly/d/extensions
+   */
+  $use(cb: Prisma.Middleware): void
 
 /**
    * Executes a prepared raw query and returns the number of affected rows.
@@ -138,9 +145,9 @@ export class PrismaClient<
   $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<R>
 
 
-  $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb<ClientOptions>, ExtArgs, $Utils.Call<Prisma.TypeMapCb<ClientOptions>, {
+  $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb, ExtArgs, $Utils.Call<Prisma.TypeMapCb, {
     extArgs: ExtArgs
-  }>>
+  }>, ClientOptions>
 
       /**
    * `prisma.audioTemplate`: Exposes CRUD operations for the **AudioTemplate** model.
@@ -219,8 +226,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 6.19.2
-   * Query Engine version: c2990dca591cba766e3b7ef5d9e8a84796e47ab7
+   * Prisma Client JS version: 6.3.0
+   * Query Engine version: acc0b9dd43eb689cbd20c9470515d719db10d0b0
    */
   export type PrismaVersion = {
     client: string
@@ -233,7 +240,6 @@ export namespace Prisma {
    */
 
 
-  export import Bytes = runtime.Bytes
   export import JsonObject = runtime.JsonObject
   export import JsonArray = runtime.JsonArray
   export import JsonValue = runtime.JsonValue
@@ -488,7 +494,7 @@ export namespace Prisma {
   type AtLeast<O extends object, K extends string> = NoExpand<
     O extends unknown
     ? | (K extends keyof O ? { [P in K]: O[P] } & O : O)
-      | {[P in keyof O as P extends K ? P : never]-?: O[P]} & O
+      | {[P in keyof O as P extends K ? K : never]-?: O[P]} & O
     : never>;
 
   type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<_Record<Exclude<Keys<_U>, keyof U>, never>> : never;
@@ -613,14 +619,11 @@ export namespace Prisma {
     db?: Datasource
   }
 
-  interface TypeMapCb<ClientOptions = {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
-    returns: Prisma.TypeMap<this['params']['extArgs'], ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}>
+  interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.InternalArgs, clientOptions: PrismaClientOptions }, $Utils.Record<string, any>> {
+    returns: Prisma.TypeMap<this['params']['extArgs'], this['params']['clientOptions']>
   }
 
-  export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> = {
-    globalOmitOptions: {
-      omit: GlobalOmitOptions
-    }
+  export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
       modelProps: "audioTemplate" | "audioHistory"
       txIsolationLevel: Prisma.TransactionIsolationLevel
@@ -817,24 +820,16 @@ export namespace Prisma {
     /**
      * @example
      * ```
-     * // Shorthand for `emit: 'stdout'`
+     * // Defaults to stdout
      * log: ['query', 'info', 'warn', 'error']
      * 
-     * // Emit as events only
+     * // Emit as events
      * log: [
-     *   { emit: 'event', level: 'query' },
-     *   { emit: 'event', level: 'info' },
-     *   { emit: 'event', level: 'warn' }
-     *   { emit: 'event', level: 'error' }
+     *   { emit: 'stdout', level: 'query' },
+     *   { emit: 'stdout', level: 'info' },
+     *   { emit: 'stdout', level: 'warn' }
+     *   { emit: 'stdout', level: 'error' }
      * ]
-     * 
-     * / Emit as events and log to stdout
-     * og: [
-     *  { emit: 'stdout', level: 'query' },
-     *  { emit: 'stdout', level: 'info' },
-     *  { emit: 'stdout', level: 'warn' }
-     *  { emit: 'stdout', level: 'error' }
-     * 
      * ```
      * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
      */
@@ -849,10 +844,6 @@ export namespace Prisma {
       timeout?: number
       isolationLevel?: Prisma.TransactionIsolationLevel
     }
-    /**
-     * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`
-     */
-    adapter?: runtime.SqlDriverAdapterFactory | null
     /**
      * Global configuration for omitting model fields by default.
      * 
@@ -881,15 +872,10 @@ export namespace Prisma {
     emit: 'stdout' | 'event'
   }
 
-  export type CheckIsLogLevel<T> = T extends LogLevel ? T : never;
-
-  export type GetLogType<T> = CheckIsLogLevel<
-    T extends LogDefinition ? T['level'] : T
-  >;
-
-  export type GetEvents<T extends any[]> = T extends Array<LogLevel | LogDefinition>
-    ? GetLogType<T[number]>
-    : never;
+  export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
+  export type GetEvents<T extends any> = T extends Array<LogLevel | LogDefinition> ?
+    GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]>
+    : never
 
   export type QueryEvent = {
     timestamp: Date
@@ -929,6 +915,25 @@ export namespace Prisma {
     | 'runCommandRaw'
     | 'findRaw'
     | 'groupBy'
+
+  /**
+   * These options are being passed into the middleware as "params"
+   */
+  export type MiddlewareParams = {
+    model?: ModelName
+    action: PrismaAction
+    args: any
+    dataPath: string[]
+    runInTransaction: boolean
+  }
+
+  /**
+   * The `T` type makes sure, that the `return proceed` is not forgotten in the middleware implementation
+   */
+  export type Middleware<T = any> = (
+    params: MiddlewareParams,
+    next: (params: MiddlewareParams) => $Utils.JsPromise<T>,
+  ) => $Utils.JsPromise<T>
 
   // tested in getLogLevel.test.ts
   export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
@@ -1176,7 +1181,7 @@ export namespace Prisma {
       select?: AudioTemplateCountAggregateInputType | true
     }
 
-  export interface AudioTemplateDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+  export interface AudioTemplateDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AudioTemplate'], meta: { name: 'AudioTemplate' } }
     /**
      * Find zero or one AudioTemplate that matches the filter.
@@ -1189,7 +1194,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends AudioTemplateFindUniqueArgs>(args: SelectSubset<T, AudioTemplateFindUniqueArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findUnique<T extends AudioTemplateFindUniqueArgs>(args: SelectSubset<T, AudioTemplateFindUniqueArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
 
     /**
      * Find one AudioTemplate that matches the filter or throw an error with `error.code='P2025'`
@@ -1203,7 +1208,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends AudioTemplateFindUniqueOrThrowArgs>(args: SelectSubset<T, AudioTemplateFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findUniqueOrThrow<T extends AudioTemplateFindUniqueOrThrowArgs>(args: SelectSubset<T, AudioTemplateFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
 
     /**
      * Find the first AudioTemplate that matches the filter.
@@ -1218,7 +1223,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends AudioTemplateFindFirstArgs>(args?: SelectSubset<T, AudioTemplateFindFirstArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findFirst<T extends AudioTemplateFindFirstArgs>(args?: SelectSubset<T, AudioTemplateFindFirstArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
 
     /**
      * Find the first AudioTemplate that matches the filter or
@@ -1234,7 +1239,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends AudioTemplateFindFirstOrThrowArgs>(args?: SelectSubset<T, AudioTemplateFindFirstOrThrowArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findFirstOrThrow<T extends AudioTemplateFindFirstOrThrowArgs>(args?: SelectSubset<T, AudioTemplateFindFirstOrThrowArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
 
     /**
      * Find zero or more AudioTemplates that matches the filter.
@@ -1252,7 +1257,7 @@ export namespace Prisma {
      * const audioTemplateWithIdOnly = await prisma.audioTemplate.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends AudioTemplateFindManyArgs>(args?: SelectSubset<T, AudioTemplateFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+    findMany<T extends AudioTemplateFindManyArgs>(args?: SelectSubset<T, AudioTemplateFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "findMany", ClientOptions>>
 
     /**
      * Create a AudioTemplate.
@@ -1266,7 +1271,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends AudioTemplateCreateArgs>(args: SelectSubset<T, AudioTemplateCreateArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    create<T extends AudioTemplateCreateArgs>(args: SelectSubset<T, AudioTemplateCreateArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
 
     /**
      * Create many AudioTemplates.
@@ -1304,7 +1309,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends AudioTemplateCreateManyAndReturnArgs>(args?: SelectSubset<T, AudioTemplateCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+    createManyAndReturn<T extends AudioTemplateCreateManyAndReturnArgs>(args?: SelectSubset<T, AudioTemplateCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
 
     /**
      * Delete a AudioTemplate.
@@ -1318,7 +1323,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends AudioTemplateDeleteArgs>(args: SelectSubset<T, AudioTemplateDeleteArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    delete<T extends AudioTemplateDeleteArgs>(args: SelectSubset<T, AudioTemplateDeleteArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
 
     /**
      * Update one AudioTemplate.
@@ -1335,7 +1340,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends AudioTemplateUpdateArgs>(args: SelectSubset<T, AudioTemplateUpdateArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    update<T extends AudioTemplateUpdateArgs>(args: SelectSubset<T, AudioTemplateUpdateArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
 
     /**
      * Delete zero or more AudioTemplates.
@@ -1398,7 +1403,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    updateManyAndReturn<T extends AudioTemplateUpdateManyAndReturnArgs>(args: SelectSubset<T, AudioTemplateUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+    updateManyAndReturn<T extends AudioTemplateUpdateManyAndReturnArgs>(args: SelectSubset<T, AudioTemplateUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
 
     /**
      * Create or update one AudioTemplate.
@@ -1417,7 +1422,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends AudioTemplateUpsertArgs>(args: SelectSubset<T, AudioTemplateUpsertArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    upsert<T extends AudioTemplateUpsertArgs>(args: SelectSubset<T, AudioTemplateUpsertArgs<ExtArgs>>): Prisma__AudioTemplateClient<$Result.GetResult<Prisma.$AudioTemplatePayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
 
 
     /**
@@ -1557,7 +1562,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__AudioTemplateClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__AudioTemplateClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1586,7 +1591,7 @@ export namespace Prisma {
 
   /**
    * Fields of the AudioTemplate model
-   */
+   */ 
   interface AudioTemplateFieldRefs {
     readonly id: FieldRef<"AudioTemplate", 'String'>
     readonly name: FieldRef<"AudioTemplate", 'String'>
@@ -1799,6 +1804,7 @@ export namespace Prisma {
      * The data used to create many AudioTemplates.
      */
     data: AudioTemplateCreateManyInput | AudioTemplateCreateManyInput[]
+    skipDuplicates?: boolean
   }
 
   /**
@@ -1817,6 +1823,7 @@ export namespace Prisma {
      * The data used to create many AudioTemplates.
      */
     data: AudioTemplateCreateManyInput | AudioTemplateCreateManyInput[]
+    skipDuplicates?: boolean
   }
 
   /**
@@ -2216,7 +2223,7 @@ export namespace Prisma {
       select?: AudioHistoryCountAggregateInputType | true
     }
 
-  export interface AudioHistoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+  export interface AudioHistoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AudioHistory'], meta: { name: 'AudioHistory' } }
     /**
      * Find zero or one AudioHistory that matches the filter.
@@ -2229,7 +2236,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends AudioHistoryFindUniqueArgs>(args: SelectSubset<T, AudioHistoryFindUniqueArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findUnique<T extends AudioHistoryFindUniqueArgs>(args: SelectSubset<T, AudioHistoryFindUniqueArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "findUnique", ClientOptions> | null, null, ExtArgs, ClientOptions>
 
     /**
      * Find one AudioHistory that matches the filter or throw an error with `error.code='P2025'`
@@ -2243,7 +2250,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends AudioHistoryFindUniqueOrThrowArgs>(args: SelectSubset<T, AudioHistoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findUniqueOrThrow<T extends AudioHistoryFindUniqueOrThrowArgs>(args: SelectSubset<T, AudioHistoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "findUniqueOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
 
     /**
      * Find the first AudioHistory that matches the filter.
@@ -2258,7 +2265,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends AudioHistoryFindFirstArgs>(args?: SelectSubset<T, AudioHistoryFindFirstArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findFirst<T extends AudioHistoryFindFirstArgs>(args?: SelectSubset<T, AudioHistoryFindFirstArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "findFirst", ClientOptions> | null, null, ExtArgs, ClientOptions>
 
     /**
      * Find the first AudioHistory that matches the filter or
@@ -2274,7 +2281,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends AudioHistoryFindFirstOrThrowArgs>(args?: SelectSubset<T, AudioHistoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findFirstOrThrow<T extends AudioHistoryFindFirstOrThrowArgs>(args?: SelectSubset<T, AudioHistoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "findFirstOrThrow", ClientOptions>, never, ExtArgs, ClientOptions>
 
     /**
      * Find zero or more AudioHistories that matches the filter.
@@ -2292,7 +2299,7 @@ export namespace Prisma {
      * const audioHistoryWithIdOnly = await prisma.audioHistory.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends AudioHistoryFindManyArgs>(args?: SelectSubset<T, AudioHistoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+    findMany<T extends AudioHistoryFindManyArgs>(args?: SelectSubset<T, AudioHistoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "findMany", ClientOptions>>
 
     /**
      * Create a AudioHistory.
@@ -2306,7 +2313,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends AudioHistoryCreateArgs>(args: SelectSubset<T, AudioHistoryCreateArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    create<T extends AudioHistoryCreateArgs>(args: SelectSubset<T, AudioHistoryCreateArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "create", ClientOptions>, never, ExtArgs, ClientOptions>
 
     /**
      * Create many AudioHistories.
@@ -2344,7 +2351,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends AudioHistoryCreateManyAndReturnArgs>(args?: SelectSubset<T, AudioHistoryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+    createManyAndReturn<T extends AudioHistoryCreateManyAndReturnArgs>(args?: SelectSubset<T, AudioHistoryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "createManyAndReturn", ClientOptions>>
 
     /**
      * Delete a AudioHistory.
@@ -2358,7 +2365,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends AudioHistoryDeleteArgs>(args: SelectSubset<T, AudioHistoryDeleteArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    delete<T extends AudioHistoryDeleteArgs>(args: SelectSubset<T, AudioHistoryDeleteArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "delete", ClientOptions>, never, ExtArgs, ClientOptions>
 
     /**
      * Update one AudioHistory.
@@ -2375,7 +2382,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends AudioHistoryUpdateArgs>(args: SelectSubset<T, AudioHistoryUpdateArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    update<T extends AudioHistoryUpdateArgs>(args: SelectSubset<T, AudioHistoryUpdateArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "update", ClientOptions>, never, ExtArgs, ClientOptions>
 
     /**
      * Delete zero or more AudioHistories.
@@ -2438,7 +2445,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    updateManyAndReturn<T extends AudioHistoryUpdateManyAndReturnArgs>(args: SelectSubset<T, AudioHistoryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+    updateManyAndReturn<T extends AudioHistoryUpdateManyAndReturnArgs>(args: SelectSubset<T, AudioHistoryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "updateManyAndReturn", ClientOptions>>
 
     /**
      * Create or update one AudioHistory.
@@ -2457,7 +2464,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends AudioHistoryUpsertArgs>(args: SelectSubset<T, AudioHistoryUpsertArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    upsert<T extends AudioHistoryUpsertArgs>(args: SelectSubset<T, AudioHistoryUpsertArgs<ExtArgs>>): Prisma__AudioHistoryClient<$Result.GetResult<Prisma.$AudioHistoryPayload<ExtArgs>, T, "upsert", ClientOptions>, never, ExtArgs, ClientOptions>
 
 
     /**
@@ -2597,7 +2604,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__AudioHistoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__AudioHistoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2626,7 +2633,7 @@ export namespace Prisma {
 
   /**
    * Fields of the AudioHistory model
-   */
+   */ 
   interface AudioHistoryFieldRefs {
     readonly id: FieldRef<"AudioHistory", 'String'>
     readonly text: FieldRef<"AudioHistory", 'String'>
@@ -2839,6 +2846,7 @@ export namespace Prisma {
      * The data used to create many AudioHistories.
      */
     data: AudioHistoryCreateManyInput | AudioHistoryCreateManyInput[]
+    skipDuplicates?: boolean
   }
 
   /**
@@ -2857,6 +2865,7 @@ export namespace Prisma {
      * The data used to create many AudioHistories.
      */
     data: AudioHistoryCreateManyInput | AudioHistoryCreateManyInput[]
+    skipDuplicates?: boolean
   }
 
   /**
@@ -3003,6 +3012,9 @@ export namespace Prisma {
    */
 
   export const TransactionIsolationLevel: {
+    ReadUncommitted: 'ReadUncommitted',
+    ReadCommitted: 'ReadCommitted',
+    RepeatableRead: 'RepeatableRead',
     Serializable: 'Serializable'
   };
 
@@ -3041,6 +3053,14 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+  export const QueryMode: {
+    default: 'default',
+    insensitive: 'insensitive'
+  };
+
+  export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
   export const NullsOrder: {
     first: 'first',
     last: 'last'
@@ -3050,7 +3070,7 @@ export namespace Prisma {
 
 
   /**
-   * Field references
+   * Field references 
    */
 
 
@@ -3062,9 +3082,23 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'String[]'
+   */
+  export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String[]'>
+    
+
+
+  /**
    * Reference to a field of type 'DateTime'
    */
   export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+  /**
+   * Reference to a field of type 'DateTime[]'
+   */
+  export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
     
 
 
@@ -3076,9 +3110,23 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Float[]'
+   */
+  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+  /**
+   * Reference to a field of type 'Int[]'
+   */
+  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
   /**
    * Deep Input Types
@@ -3329,8 +3377,8 @@ export namespace Prisma {
 
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
-    in?: string[]
-    notIn?: string[]
+    in?: string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -3338,13 +3386,14 @@ export namespace Prisma {
     contains?: string | StringFieldRefInput<$PrismaModel>
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
   export type StringNullableFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | null
-    notIn?: string[] | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -3352,13 +3401,14 @@ export namespace Prisma {
     contains?: string | StringFieldRefInput<$PrismaModel>
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
   export type DateTimeFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[]
-    notIn?: Date[] | string[]
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
     lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
@@ -3400,8 +3450,8 @@ export namespace Prisma {
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
-    in?: string[]
-    notIn?: string[]
+    in?: string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -3409,6 +3459,7 @@ export namespace Prisma {
     contains?: string | StringFieldRefInput<$PrismaModel>
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
     not?: NestedStringWithAggregatesFilter<$PrismaModel> | string
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedStringFilter<$PrismaModel>
@@ -3417,8 +3468,8 @@ export namespace Prisma {
 
   export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | null
-    notIn?: string[] | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -3426,6 +3477,7 @@ export namespace Prisma {
     contains?: string | StringFieldRefInput<$PrismaModel>
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
     not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedStringNullableFilter<$PrismaModel>
@@ -3434,8 +3486,8 @@ export namespace Prisma {
 
   export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[]
-    notIn?: Date[] | string[]
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
     lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
@@ -3448,8 +3500,8 @@ export namespace Prisma {
 
   export type FloatFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[]
-    notIn?: number[]
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
@@ -3494,8 +3546,8 @@ export namespace Prisma {
 
   export type FloatWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[]
-    notIn?: number[]
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
@@ -3530,8 +3582,8 @@ export namespace Prisma {
 
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
-    in?: string[]
-    notIn?: string[]
+    in?: string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -3544,8 +3596,8 @@ export namespace Prisma {
 
   export type NestedStringNullableFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | null
-    notIn?: string[] | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -3558,8 +3610,8 @@ export namespace Prisma {
 
   export type NestedDateTimeFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[]
-    notIn?: Date[] | string[]
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
     lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
@@ -3569,8 +3621,8 @@ export namespace Prisma {
 
   export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
-    in?: string[]
-    notIn?: string[]
+    in?: string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -3586,8 +3638,8 @@ export namespace Prisma {
 
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[]
-    notIn?: number[]
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
     lt?: number | IntFieldRefInput<$PrismaModel>
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
@@ -3597,8 +3649,8 @@ export namespace Prisma {
 
   export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | null
-    notIn?: string[] | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -3614,8 +3666,8 @@ export namespace Prisma {
 
   export type NestedIntNullableFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | null
-    notIn?: number[] | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
     lt?: number | IntFieldRefInput<$PrismaModel>
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
@@ -3625,8 +3677,8 @@ export namespace Prisma {
 
   export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[]
-    notIn?: Date[] | string[]
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
     lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
@@ -3639,8 +3691,8 @@ export namespace Prisma {
 
   export type NestedFloatFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[]
-    notIn?: number[]
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
@@ -3650,8 +3702,8 @@ export namespace Prisma {
 
   export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[]
-    notIn?: number[]
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
