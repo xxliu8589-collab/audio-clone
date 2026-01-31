@@ -48,7 +48,14 @@
       "Bash(npx prisma migrate dev:*)",
       "Bash(npx prisma:*)",
       "Bash(gh run:*)",
-      "Bash(npx vercel env ls:*)"
+      "Bash(npx vercel env ls:*)",
+      "Bash(npm install:*)",
+      "Bash(npx vercel blob store:*)",
+      "Bash(npx vercel blob add:*)",
+      "Bash(npx vercel store add:*)",
+      "Bash(npm run build:*)",
+      "Bash(cmd:*)",
+      "Bash(git rm:*)"
     ]
   }
 }

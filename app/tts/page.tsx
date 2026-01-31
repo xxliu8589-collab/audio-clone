@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import AudioPlayer from '../components/audio-player';
-import type { AudioTemplate } from '../../src/types/fish-audio';
+import AudioPlayer from '../components/ui/audio-player';
+import type { AudioTemplate } from '@/lib/types/db';
 
 const TTSPage = () => {
   const [text, setText] = useState('');

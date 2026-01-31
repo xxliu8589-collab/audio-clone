@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { FishAudioAPI } from '../../../src/utils/fish-audio-api';
-import { DBOperations } from '../../../src/utils/db-operations';
+import { FishAudioAPI } from '@/lib/api/fish-audio';
+import { DBOperations } from '@/lib/db/queries';
 
 export async function POST(request: NextRequest) {
   try {

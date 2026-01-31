@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DBOperations } from '../../../src/utils/db-operations';
+import { DBOperations } from '@/lib/db/queries';
 
 export async function GET(request: NextRequest) {
   try {

@@ -32,10 +32,10 @@ dist-ssr
 .env.production.local
 
 # Prisma
+*.db
+*.db-journal
 prisma/*.db
 prisma/*.db-journal
-# Include Prisma Client binaries for Vercel
-!src/generated/prisma/libquery_engine-*.so.node
 
 # Audio files
 public/audio/*.mp3
@@ -47,3 +47,18 @@ public/audio/*.wav
 
 # Dev environment
 .dev.vars
+
+# Playwright MCP
+.playwright-mcp/
+
+# Test audio files
+*.m4a
+*.MP3
+*_MP3.*
+
+# Temporary files
+todo.md
+data.db
+
+# Spec workflow
+.spec-workflow/

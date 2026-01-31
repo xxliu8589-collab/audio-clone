@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DBOperations } from '../../../src/utils/db-operations';
+import { DBOperations } from '@/lib/db/queries';
 import fs from 'fs';
 import path from 'path';
 

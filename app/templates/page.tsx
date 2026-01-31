@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AudioTemplate } from '../../src/types/fish-audio';
+import { AudioTemplate } from '@/lib/types/db';
 
 const TemplatesPage = () => {
   const [templates, setTemplates] = useState<AudioTemplate[]>([]);

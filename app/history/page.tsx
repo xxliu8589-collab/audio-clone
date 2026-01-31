@@ -1,6 +1,6 @@
 'use client';
 
-import AudioHistory from '../components/audio-history';
+import AudioHistory from '../components/ui/audio-history';
 
 const HistoryPage = () => {
   return (
