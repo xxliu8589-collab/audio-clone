@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { AudioRecorder } from './components/audio-recorder';
 
 const ClonePage = () => {
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -12,6 +13,7 @@ const ClonePage = () => {
   const [success, setSuccess] = useState('');
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [nameError, setNameError] = useState('');
+  const [inputMode, setInputMode] = useState<'upload' | 'record' | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -153,56 +155,122 @@ const ClonePage = () => {
       <div className="card p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="audioFile" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              选择参考音频文件
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              音频来源
             </label>
-            <div
-              className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              onDragLeave={handleDragLeave}
-              onClick={handleClick}
-            >
-              <p className="text-lg text-gray-600 dark:text-gray-300">
-                拖拽音频文件到此处，或者点击选择文件
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                支持 MP3、WAV 格式，建议时长 5-30 秒
-              </p>
-              {audioFile && (
-                <div className="flex items-center justify-between mt-2">
-                  <p className="text-sm text-gray-700 dark:text-gray-200">
-                    已选择文件: {audioFile.name}
+
+            {/* 选择输入方式 */}
+            {!inputMode && (
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setInputMode('upload')}
+                  className="p-6 border-2 border-dashed rounded-lg text-center hover:border-blue-500 dark:hover:border-blue-400 transition-colors group"
+                >
+                  <svg className="w-12 h-12 mx-auto mb-3 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">上传文件</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">支持 MP3、WAV 格式</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInputMode('record')}
+                  className="p-6 border-2 border-dashed rounded-lg text-center hover:border-blue-500 dark:hover:border-blue-400 transition-colors group"
+                >
+                  <svg className="w-12 h-12 mx-auto mb-3 text-gray-400 group-hover:text-blue-500 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">在线录音</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">直接录制声音</p>
+                </button>
+              </div>
+            )}
+
+            {/* 上传文件模式 */}
+            {inputMode === 'upload' && (
+              <div className="space-y-4">
+                <div
+                  className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onDragLeave={handleDragLeave}
+                  onClick={handleClick}
+                >
+                  <p className="text-lg text-gray-600 dark:text-gray-300">
+                    拖拽音频文件到此处，或者点击选择文件
                   </p>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // 阻止事件冒泡到上传区域
-                      setAudioFile(null);
-                      setUploadStatus('idle');
-                    }}
-                    className="ml-4 text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                  >
-                    删除
-                  </button>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    支持 MP3、WAV 格式，建议时长 5-30 秒
+                  </p>
+                  {audioFile && (
+                    <div className="flex items-center justify-between mt-2">
+                      <p className="text-sm text-gray-700 dark:text-gray-200">
+                        已选择文件: {audioFile.name}
+                      </p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAudioFile(null);
+                          setUploadStatus('idle');
+                        }}
+                        className="ml-4 text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        删除
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <input
-              type="file"
-              id="audioFile"
-              accept="audio/mp3,audio/wav"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            <div className={`mt-2 p-3 rounded-md text-sm font-medium ${
-              uploadStatus === 'success'
-                ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
-                : uploadStatus === 'error'
-                ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
-                : 'bg-gray-50 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800'
-            }`}>
-              {uploadStatus === 'success' ? '上传成功' : uploadStatus === 'error' ? '上传失败' : '未上传文件'}
-            </div>
+                <input
+                  type="file"
+                  id="audioFile"
+                  accept="audio/mp3,audio/wav,audio/webm"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <div className={`mt-2 p-3 rounded-md text-sm font-medium ${
+                  uploadStatus === 'success'
+                    ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+                    : uploadStatus === 'error'
+                    ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
+                    : 'bg-gray-50 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-800'
+                }`}>
+                  {uploadStatus === 'success' ? '上传成功' : uploadStatus === 'error' ? '上传失败' : '未上传文件'}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInputMode(null);
+                    setAudioFile(null);
+                    setUploadStatus('idle');
+                  }}
+                  className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  返回重新选择
+                </button>
+              </div>
+            )}
+
+            {/* 录音模式 */}
+            {inputMode === 'record' && (
+              <div className="space-y-4">
+                <AudioRecorder
+                  onRecordingComplete={setAudioFile}
+                  recordedFile={audioFile}
+                  onClear={() => setAudioFile(null)}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInputMode(null);
+                    setAudioFile(null);
+                  }}
+                  className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  返回重新选择
+                </button>
+              </div>
+            )}
           </div>
 
           <div>
