@@ -1,2 +1,0 @@
-mcp write test
-created by copilot
